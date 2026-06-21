@@ -11,7 +11,7 @@
     
     <script>
         // URL DEPLOY TERBARU LO SUDAH DIPASANG DI SINI BOS!
-        const SETTING_SCRIPT_URL = 'URL WEB APP GOOGLE APPS SCRIPT ANDA MASUKAN DISINI';
+        const SETTING_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2KfFunnBQ0QI-R9hmwP4dfn33dkEiR8389V5s1QGo-JI8zVchlB6sLmToWM53xmJGrQ/exec';
         
         let fdSettings = new FormData();
         fdSettings.append('action', 'get_app_settings');
@@ -2312,6 +2312,7 @@
         }
 
         // ==========================================
+        // ==========================================
         // FETCH DATA MITRA DINAMIS
         // ==========================================
         const scriptURL = SETTING_SCRIPT_URL; // Gunakan URL dari atas
@@ -2319,6 +2320,14 @@
         
         async function loadMitra() {
             const container = document.getElementById('mitraContainer');
+            
+            // LOGIKA BARU: Cek Local Storage (Cache Browser) biar instan!
+            const cachedMitra = sessionStorage.getItem('mitraDataCache');
+            if (cachedMitra) {
+                allMitraData = JSON.parse(cachedMitra);
+                renderMitraTeaser();
+            }
+
             try {
                 let fd = new FormData();
                 fd.append('action', 'get_public_stores'); 
@@ -2328,13 +2337,16 @@
                 
                 if (res.success && res.data.length > 0) {
                     allMitraData = res.data;
+                    sessionStorage.setItem('mitraDataCache', JSON.stringify(res.data)); // Simpan ke cache browser
                     renderMitraTeaser();
-                } else {
+                } else if (!cachedMitra) {
                     container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted);">Belum ada mitra yang bergabung.</div>`;
                 }
             } catch (error) {
                 console.error("Gagal memuat mitra:", error);
-                container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted);">Gagal memuat daftar mitra.</div>`;
+                if (!cachedMitra) {
+                    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted);">Gagal memuat daftar mitra.</div>`;
+                }
             }
         }
 

@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mitra & Klien iMersWAstore</title>
+  <title>Mitra & Klien</title>
   <meta name="description" content="Jelajahi ribuan toko online dan UMKM yang telah mempercayakan bisnis digital mereka menggunakan iMersWAstore." />
+  <link id="dynamicFavicon" rel="icon" type="image/png" href="https://placehold.co/32x32/2563eb/ffffff?text=M">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- SAKLAR SAAS MODE -->
+  <!-- SAKLAR SAAS MODE & PENGATURAN DINAMIS -->
   <script>
-    const SETTING_SCRIPT_URL = 'URL WEB APP GOOGLE APPS SCRIPT ANDA MASUKAN DISINI';
+    const SETTING_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2KfFunnBQ0QI-R9hmwP4dfn33dkEiR8389V5s1QGo-JI8zVchlB6sLmToWM53xmJGrQ/exec';
     
     let fdSettings = new FormData();
     fdSettings.append('action', 'get_app_settings');
@@ -19,8 +20,22 @@
     fetch(SETTING_SCRIPT_URL, { method: 'POST', body: fdSettings })
         .then(res => res.json())
         .then(res => {
-            if(res.success && res.data && res.data.show_landing_page === 'off') {
-                window.location.replace('login.html');
+            if(res.success && res.data) {
+                // 1. Cek status Landing Page
+                if (res.data.show_landing_page === 'off') {
+                    window.location.replace('login.html');
+                }
+                
+                // 2. Timpa Title Web Dinamis
+                if (res.data.app_name) {
+                    document.title = "Mitra & Klien - " + res.data.app_name;
+                }
+                
+                // 3. Timpa Favicon Dinamis
+                if (res.data.app_logo) {
+                    const favicon = document.getElementById('dynamicFavicon');
+                    if (favicon) favicon.href = res.data.app_logo;
+                }
             }
         })
         .catch(err => console.log("Gagal memuat konfigurasi awal", err));
@@ -588,6 +603,14 @@
     
     async function loadMitra() {
         const container = document.getElementById('mitraContainer');
+
+        // LOGIKA BARU: Cek session storage (Cache Browser) biar instan!
+        const cachedMitra = sessionStorage.getItem('mitraDataCache');
+        if (cachedMitra) {
+            allMitraData = JSON.parse(cachedMitra);
+            renderMitra();
+        }
+
         try {
             let fd = new FormData();
             fd.append('action', 'get_public_stores'); 
@@ -597,13 +620,16 @@
             
             if (res.success && res.data.length > 0) {
                 allMitraData = res.data;
+                sessionStorage.setItem('mitraDataCache', JSON.stringify(res.data)); // Update cache browser
                 renderMitra();
-            } else {
+            } else if (!cachedMitra) {
                 container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted); font-weight: bold;">Belum ada mitra yang bergabung.</div>`;
             }
         } catch (error) {
             console.error("Gagal memuat mitra:", error);
-            container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #dc2626; font-weight: bold;">Gagal terhubung ke server. Silakan muat ulang.</div>`;
+            if (!cachedMitra) {
+                container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #dc2626; font-weight: bold;">Gagal terhubung ke server. Silakan muat ulang.</div>`;
+            }
         }
     }
 
