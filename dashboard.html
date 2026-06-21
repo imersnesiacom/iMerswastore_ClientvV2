@@ -94,7 +94,7 @@
         // =========================================================================
         // URL WEB APP GOOGLE APPS SCRIPT (HARDCODE SESUAI PERMINTAAN)
         // =========================================================================
-        const SCRIPT_URL = 'URL WEB APP GOOGLE APPS SCRIPT ANDA MASUKAN DISINI';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2KfFunnBQ0QI-R9hmwP4dfn33dkEiR8389V5s1QGo-JI8zVchlB6sLmToWM53xmJGrQ/exec';
     </script>
 
     <!-- Mobile Sidebar Overlay -->
@@ -632,6 +632,18 @@
                             </div>
                         </div>
 
+                        <!-- FITUR TEKS BERJALAN (BARU) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 pt-4">
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Teks Berjalan (Announcement Bar)</label>
+                                <input type="text" id="setAnnouncementText" class="w-full px-3 sm:px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 text-sm" placeholder="Contoh: Promo Beli 1 Gratis 1!">
+                            </div>
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Link Teks Berjalan (Opsional)</label>
+                                <input type="url" id="setAnnouncementLink" class="w-full px-3 sm:px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 text-sm" placeholder="https://toko.com/produk-promo">
+                            </div>
+                        </div>
+
                         <!-- Form QRIS & Bank -->
                         <h4 class="font-bold text-slate-700 mt-6 border-b pb-1 text-sm sm:text-base">Integrasi Pembayaran</h4>
                         <div>
@@ -768,12 +780,14 @@
                         </div>
 
                         <!-- FITUR VIDEO TUTORIAL (PLAYLIST) -->
-                        <h4 class="font-bold text-slate-700 mt-6 border-b pb-1 flex items-center gap-2 text-sm sm:text-base"><i data-lucide="youtube" class="w-4 h-4 sm:w-5 sm:h-5 text-red-500"></i> Video Panduan (Playlist)</h4>
-                        <p class="text-[10px] text-slate-500">Masukkan link YouTube tutorial untuk ditampilkan di menu Video Panduan user/klien Anda.</p>
-                        <div id="tutorialInputsContainer" class="space-y-3 pt-2">
-                            <!-- Input dinamis -->
+                        <div id="adminTutorialSetupArea">
+                            <h4 class="font-bold text-slate-700 mt-6 border-b pb-1 flex items-center gap-2 text-sm sm:text-base"><i data-lucide="youtube" class="w-4 h-4 sm:w-5 sm:h-5 text-red-500"></i> Video Panduan (Playlist)</h4>
+                            <p class="text-[10px] text-slate-500">Masukkan link YouTube tutorial untuk ditampilkan di menu Video Panduan user/klien Anda.</p>
+                            <div id="tutorialInputsContainer" class="space-y-3 pt-2">
+                                <!-- Input dinamis -->
+                            </div>
+                            <button type="button" onclick="addTutorialInput()" class="text-xs sm:text-sm text-emerald-600 font-bold hover:text-emerald-700 transition-colors flex items-center gap-1"><i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Video Lainnya</button>
                         </div>
-                        <button type="button" onclick="addTutorialInput()" class="text-xs sm:text-sm text-emerald-600 font-bold hover:text-emerald-700 transition-colors flex items-center gap-1"><i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Video Lainnya</button>
 
                         <!-- FITUR SOCIAL MEDIA TOKO (DINAMIS) -->
                         <h4 class="font-bold text-slate-700 mt-6 border-b pb-1 flex items-center gap-2 text-sm sm:text-base"><i data-lucide="share-2" class="w-4 h-4 sm:w-5 sm:h-5 text-blue-500"></i> Sosial Media Toko</h4>
@@ -977,6 +991,17 @@
                         <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Nama Kategori</label>
                         <input type="text" id="catName" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-emerald-500 text-sm">
                     </div>
+                    
+                    <!-- FITUR SUB-KATEGORI DITAMBAHKAN DI SINI -->
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Induk Kategori (Opsional)</label>
+                        <select id="catParent" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-emerald-500 text-sm bg-white">
+                            <option value="">-- Jadikan Kategori Utama --</option>
+                            <!-- Diisi via JS -->
+                        </select>
+                        <p class="text-[10px] text-slate-500 mt-1">Pilih induk jika ini adalah Sub-Kategori.</p>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-3 sm:gap-4">
                         <div>
                             <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Urutan</label>
@@ -1528,6 +1553,12 @@
             const themeColorEl = document.getElementById('setThemeColor');
             if(themeColorEl) themeColorEl.value = currentUser.theme_color || '#f8fafc';
 
+            // FITUR TEKS BERJALAN (ANNOUNCEMENT) DI SETTING TOKO DITAMBAHKAN DI SINI
+            const annTextEl = document.getElementById('setAnnouncementText');
+            if(annTextEl) annTextEl.value = currentUser.announcement_text || '';
+            const annLinkEl = document.getElementById('setAnnouncementLink');
+            if(annLinkEl) annLinkEl.value = currentUser.announcement_link || '';
+
             // SETUP TRACKING PIXEL (BARU MEGA UPDATE V5.1)
             const pixelFbEl = document.getElementById('setPixelFB');
             if (pixelFbEl) pixelFbEl.value = currentUser.pixel_fb || '';
@@ -1547,7 +1578,16 @@
             if (document.getElementById('setTaxPPN')) document.getElementById('setTaxPPN').value = taxData.ppn || '';
             if (document.getElementById('setTaxService')) document.getElementById('setTaxService').value = taxData.service || '';
 
-            // SETUP TUTORIAL INPUTS & PLAYLIST
+            // SETUP TUTORIAL INPUTS (HANYA MUNCUL BUAT ADMIN)
+            const adminTutArea = document.getElementById('adminTutorialSetupArea');
+            if (adminTutArea) {
+                if (currentUser.role !== 'admin') {
+                    adminTutArea.classList.add('hidden'); // Sembunyikan dari User/Agency
+                } else {
+                    adminTutArea.classList.remove('hidden');
+                }
+            }
+
             const tutContainer = document.getElementById('tutorialInputsContainer');
             if(tutContainer) tutContainer.innerHTML = ''; 
             let tutData = [];
@@ -1557,12 +1597,16 @@
                 }
             } catch(e) { console.error("Error parse tutorial JSON:", e); }
             
-            if(tutData.length === 0) {
-                if(tutContainer) addTutorialInput(); 
-            } else {
-                if(tutContainer) tutData.forEach(link => addTutorialInput(link));
+            // Render form input hanya jika dia Admin
+            if (currentUser.role === 'admin') {
+                if(tutData.length === 0) {
+                    if(tutContainer) addTutorialInput(); 
+                } else {
+                    if(tutContainer) tutData.forEach(link => addTutorialInput(link));
+                }
+                // Langsung render ke player jika Admin
+                renderTutorialPlaylist(tutData);
             }
-            renderTutorialPlaylist(tutData);
 
             // SETUP SOCIAL MEDIA INPUTS
             const smContainer = document.getElementById('socialMediaContainer');
@@ -1766,6 +1810,16 @@
                 
                 if (setAppModeEl) setAppModeEl.value = appSettings.app_mode || 'saas';
                 if (setShowLandingEl) setShowLandingEl.value = appSettings.show_landing_page || 'on';
+
+                // Render Playlist Video dari Data Super Admin (Bila yang login bukan admin)
+                if (currentUser && currentUser.role !== 'admin') {
+                    try {
+                        let adminTutData = JSON.parse(appSettings.admin_tutorial || '[]');
+                        renderTutorialPlaylist(adminTutData);
+                    } catch (e) {
+                        renderTutorialPlaylist([]);
+                    }
+                }
             }
             renderNavigation();
         }
@@ -2391,17 +2445,28 @@
                 return; 
             }
             
-            tbody.innerHTML = globalCategories.map(c => `
+            tbody.innerHTML = globalCategories.map(c => {
+                // LOGIKA BARU: Cek apakah dia punya Induk (Sub-Kategori)
+                let parentName = '';
+                if (c.parent_id) {
+                    const parentCat = globalCategories.find(p => p.id === c.parent_id);
+                    if (parentCat) {
+                        parentName = `<br><span class="text-[10px] text-emerald-500 font-medium">↳ Sub dari: ${parentCat.name}</span>`;
+                    }
+                }
+
+                return `
                 <tr class="border-b border-slate-100 hover:bg-slate-50">
                     <td class="px-4 sm:px-6 py-3 font-mono text-xs sm:text-sm">${c.sort}</td>
-                    <td class="px-4 sm:px-6 py-3 font-bold text-slate-800 text-xs sm:text-sm">${c.name}</td>
+                    <td class="px-4 sm:px-6 py-3 font-bold text-slate-800 text-xs sm:text-sm">${c.name} ${parentName}</td>
                     <td class="px-4 sm:px-6 py-3">${String(c.is_active)==='true' ? '<span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded text-[10px] font-bold">AKTIF</span>' : '<span class="text-slate-500 bg-slate-100 px-2 py-1 rounded text-[10px] font-bold">MATI</span>'}</td>
                     <td class="px-4 sm:px-6 py-3 text-right">
                         <button onclick="openCategoryModal('${c.id}')" class="text-blue-500 hover:text-blue-700 text-xs sm:text-sm font-medium mr-2 sm:mr-3">Edit</button>
                         <button onclick="deleteCategory('${c.id}')" class="text-red-500 hover:text-red-700 text-xs sm:text-sm font-medium">Hapus</button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // Render Kupon Table
@@ -2718,12 +2783,26 @@
             document.getElementById('catId').value = ''; 
             document.getElementById('categoryModalTitle').innerText = 'Tambah Kategori';
             
+            // LOGIKA BARU: Render Dropdown Induk Kategori
+            const parentSelect = document.getElementById('catParent');
+            if (parentSelect) {
+                let parentOpts = '<option value="">-- Jadikan Kategori Utama --</option>';
+                globalCategories.forEach(c => {
+                    // Jangan tampilkan kategori ini sendiri sebagai pilihan induknya (mencegah infinite loop)
+                    if (c.id !== id && String(c.is_active) === 'true') {
+                        parentOpts += `<option value="${c.id}">${c.name}</option>`;
+                    }
+                });
+                parentSelect.innerHTML = parentOpts;
+            }
+
             if (id) {
                 const c = globalCategories.find(x => x.id === id);
                 if (c) {
                     document.getElementById('categoryModalTitle').innerText = 'Edit Kategori';
                     document.getElementById('catId').value = c.id; 
                     document.getElementById('catName').value = c.name; 
+                    if(document.getElementById('catParent')) document.getElementById('catParent').value = c.parent_id || ''; 
                     document.getElementById('catSort').value = c.sort; 
                     document.getElementById('catStatus').value = c.is_active; 
                 }
@@ -2741,6 +2820,7 @@
             const payload = { 
                 id_user_toko: targetStoreId, 
                 nama_kategori: document.getElementById('catName').value, 
+                parent_id: document.getElementById('catParent') ? document.getElementById('catParent').value : '',
                 sort_order: document.getElementById('catSort').value, 
                 is_active: document.getElementById('catStatus').value 
             };
@@ -3085,6 +3165,8 @@
                 secret_pin: document.getElementById('setSecretPin') ? document.getElementById('setSecretPin').value : '',
                 banner_url: document.getElementById('setBannerUrl') ? document.getElementById('setBannerUrl').value : '',
                 theme_color: document.getElementById('setThemeColor') ? document.getElementById('setThemeColor').value : '',
+                announcement_text: document.getElementById('setAnnouncementText') ? document.getElementById('setAnnouncementText').value : '',
+                announcement_link: document.getElementById('setAnnouncementLink') ? document.getElementById('setAnnouncementLink').value : '',
                 tutorial_data: JSON.stringify(tutArray),
                 social_media: JSON.stringify(smArray),
                 notif_templates: JSON.stringify(notifTemplates),
