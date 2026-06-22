@@ -2312,22 +2312,22 @@
         }
 
         // ==========================================
+        // FETCH DATA MITRA DINAMIS (UPDATE SILUMAN)
         // ==========================================
-        // FETCH DATA MITRA DINAMIS
-        // ==========================================
-        const scriptURL = SETTING_SCRIPT_URL; // Gunakan URL dari atas
+        const scriptURL = SETTING_SCRIPT_URL; 
         let allMitraData = [];
         
         async function loadMitra() {
             const container = document.getElementById('mitraContainer');
             
-            // LOGIKA BARU: Cek Local Storage (Cache Browser) biar instan!
+            // 1. TAMPILKAN CACHE LANGSUNG (Biar 0 detik, user gak nunggu)
             const cachedMitra = sessionStorage.getItem('mitraDataCache');
             if (cachedMitra) {
                 allMitraData = JSON.parse(cachedMitra);
                 renderMitraTeaser();
             }
 
+            // 2. CEK DATA BARU DI BELAKANG LAYAR (Silent Update)
             try {
                 let fd = new FormData();
                 fd.append('action', 'get_public_stores'); 
@@ -2336,14 +2336,20 @@
                 const res = await response.json();
                 
                 if (res.success && res.data.length > 0) {
-                    allMitraData = res.data;
-                    sessionStorage.setItem('mitraDataCache', JSON.stringify(res.data)); // Simpan ke cache browser
-                    renderMitraTeaser();
+                    const newDataString = JSON.stringify(res.data);
+                    
+                    // JIKA DATA DI GOOGLE SHEET BEDA DENGAN CACHE LAMA -> RENDER ULANG!
+                    if (cachedMitra !== newDataString) {
+                        allMitraData = res.data;
+                        sessionStorage.setItem('mitraDataCache', newDataString);
+                        renderMitraTeaser(); // Update tampilan seketika
+                        console.log("Daftar mitra diperbarui dari server!");
+                    }
                 } else if (!cachedMitra) {
                     container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted);">Belum ada mitra yang bergabung.</div>`;
                 }
             } catch (error) {
-                console.error("Gagal memuat mitra:", error);
+                console.error("Gagal update mitra di background:", error);
                 if (!cachedMitra) {
                     container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted);">Gagal memuat daftar mitra.</div>`;
                 }
