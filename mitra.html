@@ -604,13 +604,14 @@
     async function loadMitra() {
         const container = document.getElementById('mitraContainer');
 
-        // LOGIKA BARU: Cek session storage (Cache Browser) biar instan!
+        // 1. TAMPILKAN CACHE LANGSUNG (Loading 0 Detik)
         const cachedMitra = sessionStorage.getItem('mitraDataCache');
         if (cachedMitra) {
             allMitraData = JSON.parse(cachedMitra);
             renderMitra();
         }
 
+        // 2. CEK DATA BARU DI BELAKANG LAYAR (Update Siluman)
         try {
             let fd = new FormData();
             fd.append('action', 'get_public_stores'); 
@@ -619,14 +620,20 @@
             const res = await response.json();
             
             if (res.success && res.data.length > 0) {
-                allMitraData = res.data;
-                sessionStorage.setItem('mitraDataCache', JSON.stringify(res.data)); // Update cache browser
-                renderMitra();
+                const newDataString = JSON.stringify(res.data);
+                
+                // JIKA DATA DI SERVER BEDA DENGAN CACHE LAMA -> RENDER ULANG!
+                if (cachedMitra !== newDataString) {
+                    allMitraData = res.data;
+                    sessionStorage.setItem('mitraDataCache', newDataString);
+                    renderMitra(); // Update tampilan seketika tanpa refresh web
+                    console.log("Daftar mitra diperbarui dari server!");
+                }
             } else if (!cachedMitra) {
                 container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted); font-weight: bold;">Belum ada mitra yang bergabung.</div>`;
             }
         } catch (error) {
-            console.error("Gagal memuat mitra:", error);
+            console.error("Gagal update mitra di background:", error);
             if (!cachedMitra) {
                 container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #dc2626; font-weight: bold;">Gagal terhubung ke server. Silakan muat ulang.</div>`;
             }
